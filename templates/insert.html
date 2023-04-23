@@ -45,6 +45,7 @@
       <label class="control-label col-sm-2" for="session">Session:</label>
       <div class="col-sm-10">
         <select class="form-control" id="session" name="session">
+          <option>Select</option>
           {% for a in sessions%}
           <option value={{a[1]}}> {{a[1]}} </option>
           {% endfor %}

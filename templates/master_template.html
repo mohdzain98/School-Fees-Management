@@ -10,29 +10,43 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
 </head>
 <body>
-  <nav class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="#">Fee Management System</a>
-      </div>
-      <ul class="nav navbar-nav">
-        <li><a href="{{url_for('index')}}">Home</a></li>
-
-        <li><a href="{{url_for('insert')}}">Insert New Student</a></li>
-
-        <li><a href="{{url_for('view')}}">View All Students</a></li>
-
-        <!-- <li><a href="{{url_for('search')}}">Search Results</a></li> -->
-
-        <li><a href="{{url_for('all_session')}}">Classes</a></li>
+  <nav class="navbar navbar-fixed-top">
+    <div class="navbar-default" id="navbar"><!-- navbar start-->
+        <div class="container"><!-- container start-->
+            <div class="navbar-header">
+              <a class="navbar-brand home" href="{{url_for('index')}}">
+                <image src="{{url_for('static',filename='logo.png')}}" style="height: 30px; width: 35px; margin-bottom: 2px;"></image>
+              </a>
 
 
-      </ul>
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navigation">
+                    <span class="sr-only">Toggle Navigation</span>
+                    <i class="fa fa-align-justify"></i>
+                    
+                </button>
+            </div>
+            <div class="navbar-collapse collapse" id="navigation"> <!-- navbar start-->
+                <div class="padding-nav"> <!-- padding start-->
+                  <ul class="nav navbar-nav">
+                    <li><a href="{{url_for('index')}}">Home</a></li>
+            
+                    <li><a href="{{url_for('insert')}}">Insert New Student</a></li>
+            
+                    <li><a href="{{url_for('view')}}">View All Students</a></li>
+            
+                    <li><a href="{{url_for('all_session')}}">Classes</a></li>
+            
+                  </ul>
+                </div>
+            </div>
+        </div>
     </div>
-  </nav>
-<div class="container">
+</nav>
+  
+<div class="container" style="margin-top: 100px;">
   {%block body%}
   {%endblock%}
 </div>

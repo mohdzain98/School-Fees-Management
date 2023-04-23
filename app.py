@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 import os
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for,flash
 
 from flask_mysqldb import MySQL
 
@@ -15,12 +15,9 @@ app.config['MYSQL_DB'] = 'feemanagement'
 
 mysql = MySQL(app)
 
-
-
-
 @app.route("/", methods=['GET'])
 def index():
-
+    
     cursor = mysql.connection.cursor()
 
     cursor.execute("SELECT * FROM sessions")
@@ -41,7 +38,7 @@ def insert():
 def covert_rn(str):
     if(str=='first'):
         return '1'
-    if(str=='sec0nd'):
+    if(str=='second'):
         return '2'
     if(str=='third'):
         return '3'
@@ -64,14 +61,9 @@ def covert_rn(str):
     if(str=='twelve'):
         return '12'
     
-def view_update(grade):
-    cursor = mysql.connection.cursor()
-    cursor.execute("""SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class 
-                   where students.session=%s""",(grade,))
-    students = cursor.fetchall()
-        
-    return render_template("view.html", students=students)
 
+
+    
 @app.route("/view", methods=['POST', 'GET'])
 def view():
 
@@ -89,24 +81,35 @@ def view():
         rem_fee = int(total_fee) - int(sub_fee)
         roll_no = covert_rn(session) + "-" + str(roll_no2)
         
-        cursor.execute("INSERT into students (name, fname, Adhar,roll_no,session) VALUES (%s, %s, %s, %s,%s)",
-                (name,fname,Adhar,roll_no,session))
+        cursor.execute("select * from students where roll_no=%s",(roll_no,))
+        count=cursor.rowcount
+        if(count==0):
+            cursor.execute("INSERT into students (name, fname, Adhar,roll_no,session) VALUES (%s, %s, %s, %s,%s)",
+                    (name,fname,Adhar,roll_no,session))
 
-        cursor.execute("INSERT into fee (total_fee, sub_fee, rem_fee, roll_no,class) VALUES (%s, %s, %s, %s, %s)",
-                (total_fee,sub_fee,rem_fee,roll_no,session))
-        
-        mysql.connection.commit()
+            cursor.execute("INSERT into fee (total_fee, sub_fee, rem_fee, roll_no,class) VALUES (%s, %s, %s, %s, %s)",
+                    (total_fee,sub_fee,rem_fee,roll_no,session))
+            
+            mysql.connection.commit()
 
-        # Get all records again
-        cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class")
-        students = cursor.fetchall()
-        
-        return render_template("view.html", students=students)
+            # Get all records again
+            cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class where students.session = %s", (session,))
+            students = cursor.fetchall()
+            
+            return render_template("view.html", students=students)
+        else:
+            return """
+            <script>alert('Roll number already exist in the database')
+            window.open('http://127.0.0.1:5000/insert')
+            </script>
+            """
     else:
         cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class")
         students = cursor.fetchall()
         
         return render_template("view.html", students=students)
+
+
 
 @app.route("/all_session", methods=['POST', 'GET'])
 def all_session():
@@ -116,18 +119,25 @@ def all_session():
     if request.method == "POST":
         
         session = request.form.get("session")
-        
-        
-        cursor.execute("INSERT into sessions (title) VALUES (%s)",
-                (session,))
-        
-        mysql.connection.commit()
+        cursor.execute("select id from sessions where title=%s",(session,))
+        count=cursor.rowcount
+        if(count==0):
+            cursor.execute("INSERT into sessions (title) VALUES (%s)",
+                    (session,))
+            
+            mysql.connection.commit()
 
-        # Get all records again
-        cursor.execute("SELECT sessions.title, COUNT(distinct students.roll_no), sum(fee.total_fee), sum(fee.sub_fee), sum(fee.rem_fee) FROM students INNER JOIN fee on students.roll_no = fee.roll_no RIGHT JOIN sessions ON students.session = sessions.title GROUP BY sessions.title ORDER BY sessions.id")
-        sessions = cursor.fetchall()
-        
-        return render_template("all_session.html", sessions=sessions)
+            # Get all records again
+            cursor.execute("SELECT sessions.title, COUNT(distinct students.roll_no), sum(fee.total_fee), sum(fee.sub_fee), sum(fee.rem_fee) FROM students INNER JOIN fee on students.roll_no = fee.roll_no RIGHT JOIN sessions ON students.session = sessions.title GROUP BY sessions.title ORDER BY sessions.id")
+            sessions = cursor.fetchall()
+            
+            return render_template("all_session.html", sessions=sessions)
+        else:
+            return """
+            <script>alert('Class already exist in the database')
+            window.open('http://127.0.0.1:5000/all_session')
+            </script>
+            """
     else:
 
         cursor.execute("SELECT sessions.title, COUNT(distinct students.roll_no), sum(fee.total_fee), sum(fee.sub_fee), sum(fee.rem_fee) FROM students INNER JOIN fee on students.roll_no = fee.roll_no RIGHT JOIN sessions ON students.session = sessions.title GROUP BY sessions.title ORDER BY sessions.id")
@@ -136,6 +146,22 @@ def all_session():
         return render_template("all_session.html", sessions=sessions)
 
 
+@app.route("/searchrecord", methods=['POST','GET'])
+def searchrecord():
+
+    cursor = mysql.connection.cursor()    
+
+    if request.method == "POST":
+        
+        name = request.form.get("name")
+
+        cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class where students.name = %s", (name,))
+        students = cursor.fetchall()
+       
+        return render_template("view.html", students=students)
+    else:
+        return "Please search from Home Tab"
+    
 @app.route("/search", methods=['POST','GET'])
 def search():
 
@@ -147,7 +173,6 @@ def search():
 
         cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class where students.session = %s", (session,))
         students = cursor.fetchall()
-        
         return render_template("view.html", students=students)
 
     else:
@@ -177,10 +202,12 @@ def update(roll_no):
 
         cursor.execute("Update fee SET total_fee = %s, sub_fee =%s, rem_fee =%s, roll_no = %s where roll_no=%s",
                     (total_fee,sub_fee,rem_fee,roll_no2,roll_no))
-
+        
+        cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class where students.session = %s", (session,))
+        students = cursor.fetchall()
         mysql.connection.commit()
 
-        return redirect(url_for('view'))
+        return render_template("view.html", students=students)
     else:
         cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class WHERE students.roll_no = %s", (roll_no,))
         stud = cursor.fetchone()
@@ -189,7 +216,6 @@ def update(roll_no):
 
 @app.route("/delete/<roll_no>/")
 def delete(roll_no):
-    print(roll_no)
     cursor = mysql.connection.cursor()
     query="SELECT * FROM students WHERE roll_no = %s"
     cursor.execute(query, (roll_no,))
@@ -197,11 +223,15 @@ def delete(roll_no):
     if stud is None:
         return "No record found by Roll No = " + str(roll_no) +". Kindly go back to <a href='/view'> View All Students </a>"
     else:
+        query="SELECT session FROM students WHERE roll_no = %s"
+        cursor.execute(query, (roll_no,))
+        session=cursor.fetchone()
         cursor.execute("DELETE FROM students WHERE roll_no =%s",(roll_no,))
         cursor.execute("DELETE FROM fee WHERE roll_no =%s",(roll_no,))
-
+        cursor.execute("SELECT * from students INNER JOIN fee ON students.roll_no = fee.roll_no and students.session=fee.class where students.session = %s", (session[0],))
+        students = cursor.fetchall()
         mysql.connection.commit()
-        return redirect(url_for('view'))
+        return render_template("view.html", students=students)
 
 
 if __name__ == "__main__":

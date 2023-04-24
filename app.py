@@ -100,7 +100,7 @@ def view():
         else:
             return """
             <script>alert('Roll number already exist in the database')
-            window.open('http://127.0.0.1:5000/insert')
+            window.open('http://127.0.0.1:5000/insert','_SELF')
             </script>
             """
     else:
@@ -119,6 +119,7 @@ def all_session():
     if request.method == "POST":
         
         session = request.form.get("session")
+        #session=session.lower()
         cursor.execute("select id from sessions where title=%s",(session,))
         count=cursor.rowcount
         if(count==0):
@@ -135,7 +136,7 @@ def all_session():
         else:
             return """
             <script>alert('Class already exist in the database')
-            window.open('http://127.0.0.1:5000/all_session')
+            window.open('http://127.0.0.1:5000/all_session','_SELF')
             </script>
             """
     else:
@@ -160,7 +161,11 @@ def searchrecord():
        
         return render_template("view.html", students=students)
     else:
-        return "Please search from Home Tab"
+        return """
+        <script>alert('search from the home page')
+        window.open('http://127.0.0.1:5000/','_SELF')
+        </script>
+        """
     
 @app.route("/search", methods=['POST','GET'])
 def search():
@@ -221,7 +226,11 @@ def delete(roll_no):
     cursor.execute(query, (roll_no,))
     stud = cursor.fetchone()
     if stud is None:
-        return "No record found by Roll No = " + str(roll_no) +". Kindly go back to <a href='/view'> View All Students </a>"
+        return """
+        <script>alert('no record found with this roll number')
+        window.open('http://127.0.0.1:5000/view','_SELF')
+        </script>
+        """
     else:
         query="SELECT session FROM students WHERE roll_no = %s"
         cursor.execute(query, (roll_no,))

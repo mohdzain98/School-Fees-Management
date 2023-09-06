@@ -242,6 +242,5 @@ def delete(roll_no):
         mysql.connection.commit()
         return render_template("view.html", students=students)
 
-
 if __name__ == "__main__":
     app.run(debug=True)

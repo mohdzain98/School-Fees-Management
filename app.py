@@ -25,6 +25,10 @@ def index():
 
     return render_template("index.html", sessions=sessions)
 
+@app.route("/apilist",methods=['GET'])
+def list():
+    return render_template("list.html")
+
 @app.route("/insert", methods=['GET'])
 def insert():
 
